@@ -1,0 +1,87 @@
+body {
+  background: #fff;
+  color: #1c2430;
+  font-family: sans-serif;
+  line-height: 1.4;
+  margin: 1.5rem;
+}
+
+.banner {
+  background: #14365c;
+  color: #fff;
+  font-weight: 700;
+  margin: 0 0 1rem;
+  padding: 0.85rem 1rem;
+}
+
+nav {
+  display: flex;
+  border-bottom: 2px solid #14365c;
+  margin: 0 0 1.25rem;
+}
+
+nav a {
+  background: #e6eef6;
+  border: 1px solid #c5d4e4;
+  border-bottom: none;
+  color: #14365c;
+  margin: 0 0.35rem -2px 0;
+  padding: 0.45rem 0.9rem;
+  text-decoration: none;
+}
+
+body[data-page="report"] nav a[href="index.html"],
+body[data-page="review"] nav a[href="review.html"],
+body[data-page="dashboard"] nav a[href="dashboard.html"] {
+  background: #fff;
+  border-color: #14365c;
+  font-weight: 700;
+}
+
+h1 {
+  font-size: 1.4rem;
+  margin: 0 0 0.75rem;
+}
+
+.card {
+  background: #f7f9fc;
+  border: 1px solid #d0d7e2;
+  margin-bottom: 1rem;
+  padding: 0.9rem 1rem;
+}
+
+.card p {
+  margin: 0.25rem 0;
+}
+
+.subject {
+  font-weight: 700;
+}
+
+.reason {
+  background: #1d4e89;
+  border-radius: 999px;
+  color: #fff;
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  margin-top: 0.35rem;
+  padding: 0.15rem 0.55rem;
+}
+
+.message {
+  margin-top: 0.55rem;
+}
+
+.held {
+  font-style: italic;
+}
+
+.score {
+  color: #14365c;
+  font-weight: 700;
+}
+
+button {
+  margin: 0.6rem 0.5rem 0 0;
+}
