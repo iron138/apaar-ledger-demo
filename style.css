@@ -85,3 +85,104 @@ h1 {
 button {
   margin: 0.6rem 0.5rem 0 0;
 }
+
+.stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+
+.stat {
+  background: #f7f9fc;
+  border: 1px solid #d0d7e2;
+  color: #1c2430;
+  flex: 1 1 8rem;
+  font: inherit;
+  margin: 0;
+  padding: 0.9rem 1rem;
+  text-align: left;
+}
+
+button.stat {
+  cursor: pointer;
+}
+
+.stat-label {
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.stat-value {
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin: 0.35rem 0 0;
+}
+
+.stat-value.flagged {
+  color: #9b2335;
+}
+
+.stat-names {
+  margin: 0.55rem 0 0;
+  padding-left: 1.1rem;
+}
+
+.seat-bar {
+  display: flex;
+  gap: 0.35rem;
+  margin: 0.5rem 0;
+}
+
+.seat {
+  background: #14365c;
+  display: inline-block;
+  height: 1.5rem;
+  width: 1.5rem;
+}
+
+.seat-over {
+  background: #9b2335;
+}
+
+.seat-label {
+  font-weight: 700;
+  margin: 0.25rem 0 0.75rem;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.chip-block {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.chip {
+  background: #1d4e89;
+  border: none;
+  border-radius: 999px;
+  color: #fff;
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-weight: 700;
+  margin: 0;
+  padding: 0.15rem 0.55rem;
+}
+
+.chip-detail {
+  background: #f7f9fc;
+  border: 1px solid #d0d7e2;
+  margin-top: 0.45rem;
+  padding: 0.75rem 1rem;
+}
+
+.chip-detail ul {
+  margin: 0;
+  padding-left: 1.1rem;
+}

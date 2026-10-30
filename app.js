@@ -291,15 +291,183 @@ function renderReview(findings) {
   }
 }
 
+function enrolmentNames() {
+  var counted = [];
+  var held = [];
+  var foreignNational = [];
+  var seen = {};
+  var i;
+  for (i = 0; i < students.length; i += 1) {
+    var student = students[i];
+    if (student.category === "Foreign National") {
+      foreignNational.push(student.name);
+      continue;
+    }
+    if (student.category !== "Regular") {
+      continue;
+    }
+    if (!isTwelveDigitId(student.apaarId)) {
+      held.push(student.name);
+      continue;
+    }
+    if (seen[student.apaarId]) {
+      continue;
+    }
+    seen[student.apaarId] = true;
+    counted.push(student.name);
+  }
+  return {
+    counted: counted,
+    held: held,
+    foreignNational: foreignNational
+  };
+}
+
 function renderDashboard(findings) {
   var screen = document.getElementById("screen");
   var dash = findings.dashboard;
-  addText(screen, dash.institution + ", academic year " + dash.academicYear + ", " + dash.course + ".");
-  addText(screen, "Approved intake: " + dash.approvedIntake);
-  addText(screen, "Regular enrolment: " + dash.regularEnrolment);
+  var names = enrolmentNames();
+  var over = names.counted.length - dash.approvedIntake;
+
+  function statCard(label, value, flagged, nameList) {
+    var card = document.createElement(nameList ? "button" : "div");
+    card.className = "stat";
+    if (nameList) {
+      card.type = "button";
+    }
+    var labelEl = document.createElement("p");
+    labelEl.className = "stat-label";
+    labelEl.textContent = label;
+    var valueEl = document.createElement("p");
+    valueEl.className = flagged ? "stat-value flagged" : "stat-value";
+    valueEl.textContent = value;
+    card.appendChild(labelEl);
+    card.appendChild(valueEl);
+    if (nameList) {
+      var list = document.createElement("ul");
+      list.className = "stat-names";
+      list.hidden = true;
+      var n;
+      for (n = 0; n < nameList.length; n += 1) {
+        var item = document.createElement("li");
+        item.textContent = nameList[n];
+        list.appendChild(item);
+      }
+      card.appendChild(list);
+      card.addEventListener("click", function () {
+        list.hidden = !list.hidden;
+      });
+    }
+    return card;
+  }
+
+  function reasonGroups() {
+    var groups = {};
+    var codes = [];
+    var key;
+    for (key in REASONS) {
+      if (Object.prototype.hasOwnProperty.call(REASONS, key)) {
+        groups[key] = {
+          code: key,
+          subjects: [],
+          message: REASONS[key].message
+        };
+        codes.push(key);
+      }
+    }
+    var items = findings.report.concat(findings.review);
+    var seen = {};
+    var i;
+    for (i = 0; i < items.length; i += 1) {
+      var item = items[i];
+      var pair = item.subject + "\n" + item.code;
+      if (seen[pair] || !groups[item.code]) {
+        continue;
+      }
+      seen[pair] = true;
+      groups[item.code].subjects.push(item.subject);
+      if (!groups[item.code].message && item.message) {
+        groups[item.code].message = item.message;
+      }
+    }
+    var result = [];
+    for (i = 0; i < codes.length; i += 1) {
+      result.push(groups[codes[i]]);
+    }
+    return result;
+  }
+
+  addText(
+    screen,
+    dash.institution + ", academic year " + dash.academicYear + ", " + dash.course + "."
+  );
+
+  var stats = document.createElement("div");
+  stats.className = "stats";
+  stats.appendChild(statCard("Approved intake", String(dash.approvedIntake), false));
+  stats.appendChild(statCard("Counted", String(names.counted.length), false, names.counted));
+  stats.appendChild(statCard("Held", String(names.held.length), false, names.held));
+  stats.appendChild(statCard("Institution status", dash.status, dash.status === "Flagged"));
+  stats.appendChild(statCard("Still in review", String(dash.stillInReview), false));
+  screen.appendChild(stats);
+
+  var bar = document.createElement("div");
+  bar.className = "seat-bar";
+  var s;
+  for (s = 0; s < dash.approvedIntake; s += 1) {
+    var seat = document.createElement("span");
+    seat.className = "seat";
+    bar.appendChild(seat);
+  }
+  if (over > 0) {
+    var o;
+    for (o = 0; o < over; o += 1) {
+      var extra = document.createElement("span");
+      extra.className = "seat seat-over";
+      bar.appendChild(extra);
+    }
+  }
+  screen.appendChild(bar);
+  if (over > 0) {
+    addText(screen, "over by " + over, "seat-label");
+  }
+
   addText(screen, "1 Foreign National seat, not counted against regular intake");
-  addText(screen, "Institution status: " + dash.status);
-  addText(screen, "Still in review: " + dash.stillInReview);
+
+  var chips = document.createElement("div");
+  chips.className = "chips";
+  var groups = reasonGroups();
+  var c;
+  for (c = 0; c < groups.length; c += 1) {
+    var group = groups[c];
+    var block = document.createElement("div");
+    block.className = "chip-block";
+    var chip = document.createElement("button");
+    chip.type = "button";
+    chip.className = "chip";
+    chip.textContent = group.code + " " + group.subjects.length;
+    var detail = document.createElement("div");
+    detail.className = "chip-detail";
+    detail.hidden = true;
+    var subjectList = document.createElement("ul");
+    var j;
+    for (j = 0; j < group.subjects.length; j += 1) {
+      var subject = document.createElement("li");
+      subject.textContent = group.subjects[j];
+      subjectList.appendChild(subject);
+    }
+    detail.appendChild(subjectList);
+    addText(detail, group.message, "message");
+    chip.addEventListener("click", function (panel) {
+      return function () {
+        panel.hidden = !panel.hidden;
+      };
+    }(detail));
+    block.appendChild(chip);
+    block.appendChild(detail);
+    chips.appendChild(block);
+  }
+  screen.appendChild(chips);
 }
 
 function renderPage() {

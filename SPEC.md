@@ -12,6 +12,7 @@ Three views, linked by simple page links. The rows live in `data.js`. `app.js` c
 - **Review queue.** Two cases a person must decide. Each has a short note and a confidence score. Two buttons, **Accept** and **Send back**, only change the label on the page.
 Show every confidence score with the label "illustrative score".
 - **Dashboard.** A few numbers from the same fake list: approved intake 2, regular enrolment "3 counted, 1 held", institution status Flagged, and how many items are still in review.
+Dashboard extras for the demo video: (1) stat cards for approved intake, regular enrolment counted, held, institution status and still in review; (2) a simple seat bar made with CSS only; (3) one chip per reason code with a count, and clicking a chip lists the matching subjects; (4) decisions made on the Review queue update "Still in review" on the Dashboard for the current browser tab only, with a "Reset demo" button. Everything is computed from data.js. No library, no install, no server. Nothing is auto-rejected, and Accept or Send back never changes the OVER-INTAKE flag.
 
 ## Reason codes
 
