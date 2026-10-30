@@ -16,59 +16,59 @@ var DEMO_STEPS = [
     selector: ".banner",
     text: "Prototype",
     caption: "Working prototype on synthetic sample data. The APAAR registry here is simulated.",
-    wait: 4500
+    wait: 5060
   },
   {
     page: "index.html",
     selector: ".card",
     text: "APAAR-FORMAT",
     caption: "Each problem gets a reason code, a plain message and a suggested fix. This ID is not 12 digits, so the row is held.",
-    wait: 5500
+    wait: 5680
   },
   {
     page: "index.html",
     selector: ".card",
     text: "DUP-IN-FILE",
     caption: "The same APAAR ID appears on two rows of the file.",
-    wait: 4000
+    wait: 3250
   },
   {
     page: "index.html",
     selector: ".card",
     text: "OVER-INTAKE",
     caption: "The course would have 3 regular claims against an approved intake of 2. The flag sits on the course, not on a student.",
-    wait: 6000
+    wait: 5770
   },
   {
     page: "index.html",
     selector: ".card",
     text: "DUAL-ENROL",
     caption: "One student appears at two institutions. The ledger does not reject them. It sends the case to a person.",
-    wait: 6000
+    wait: 4790
   },
   {
     page: "review.html",
     selector: ".card",
     text: "Meera Iyer",
     caption: "Exact ID match. Shown with an illustrative score of 0.95. A person decides.",
-    wait: 4500,
+    wait: 5750,
     clickLabel: "Accept",
-    clickAt: 2500
+    clickAt: 4300
   },
   {
     page: "review.html",
     selector: ".card",
     text: "Sana Qureshi",
     caption: "No APAAR ID. Similar name and the same date of birth, illustrative score 0.62. A student without an ID goes to review, never auto-rejected.",
-    wait: 6500,
+    wait: 7090,
     clickLabel: "Send back",
-    clickAt: 3500
+    clickAt: 6300
   },
   {
     page: "dashboard.html",
     selector: ".stat-row",
     caption: "Approved intake 2. Regular enrolment: 3 counted, 1 held. The institution is flagged. Items are still in review.",
-    wait: 6000,
+    wait: 6580,
     clickSelector: ".stat",
     clickText: "Counted",
     clickAt: 3000,
@@ -78,16 +78,16 @@ var DEMO_STEPS = [
     page: "dashboard.html",
     selector: ".seat-bar",
     caption: "The seat bar shows the course over its approved intake by one.",
-    wait: 4000
+    wait: 3090
   },
   {
     page: "dashboard.html",
     selector: "button.chip",
     text: "OVER-INTAKE",
     caption: "Each reason code shows how many cases it covers. Select one to list who it applies to.",
-    wait: 5000,
+    wait: 4310,
     clickSelf: true,
-    clickAt: 1500,
+    clickAt: 2400,
     clickAgainAtEnd: true
   },
   {
@@ -95,7 +95,7 @@ var DEMO_STEPS = [
     selector: ".banner",
     text: "Prototype",
     caption: "Registry lookup is simulated. Consent and the audit log are proposed, not yet built. A person decides every uncertain case.",
-    wait: 6500
+    wait: 7250
   },
   {
     page: "dashboard.html",
