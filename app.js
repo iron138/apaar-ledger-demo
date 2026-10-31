@@ -283,7 +283,8 @@ function plural(n, one, many) {
   return n + " " + (n === 1 ? one : many);
 }
 
-function contextBar(screen, dash, withStatus) {
+function contextBar(dash) {
+  var host = document.getElementById("context") || document.getElementById("screen");
   var bar = el("div", "context");
   var items = [
     ["Institution", dash.institution],
@@ -297,24 +298,20 @@ function contextBar(screen, dash, withStatus) {
     item.appendChild(el("span", "context-value", items[i][1]));
     bar.appendChild(item);
   }
-  if (withStatus) {
-    var flagged = dash.status === "Flagged";
-    var status = el("p", "status-pill " + (flagged ? "is-flagged" : "is-clear"));
-    status.appendChild(icon(flagged ? "flag" : "check"));
-    status.appendChild(el("span", null, "Institution status: " + dash.status));
-    bar.appendChild(status);
-  }
-  screen.appendChild(bar);
+  host.appendChild(bar);
 }
 
 function scoreMeter(parent, confidence) {
   var wrap = el("div", "score-meter");
+  var row = el("div", "score-row");
+  row.appendChild(el("span", "score-label", "illustrative score"));
+  row.appendChild(el("span", "score-value", String(confidence)));
+  wrap.appendChild(row);
   var track = el("span", "score-track");
   var fill = el("span", "score-fill");
   fill.style.width = Math.round(confidence * 100) + "%";
   track.appendChild(fill);
   wrap.appendChild(track);
-  wrap.appendChild(el("span", "score", "illustrative score " + confidence));
   parent.appendChild(wrap);
   return wrap;
 }
@@ -327,10 +324,10 @@ function reportCard(item, index) {
   addText(block, item.subject, "subject");
   addText(block, "Reason: " + item.code, "reason");
   addText(block, item.message, "message");
-  addText(block, "Fix: " + item.fix, "fix");
   if (item.held) {
     addText(block, item.held, "held");
   }
+  addText(block, "Fix: " + item.fix, "fix");
   return block;
 }
 
@@ -346,7 +343,7 @@ function groupHeading(screen, title, subtitle, count) {
 function renderReport(findings) {
   var screen = document.getElementById("screen");
   var dash = findings.dashboard;
-  contextBar(screen, dash, false);
+  contextBar(dash);
 
   // Split the computed findings: the course-level flag versus problems on rows.
   var rowItems = [];
@@ -406,8 +403,9 @@ function renderReport(findings) {
 
 function renderReview(findings) {
   var screen = document.getElementById("screen");
+  contextBar(findings.dashboard);
   addText(screen, "A person decides each case below. Nothing is auto-rejected.", "lede");
-  var grid = el("div", "card-grid");
+  var grid = el("div", "card-grid review-grid");
   var i;
   for (i = 0; i < findings.review.length; i += 1) {
     var item = findings.review[i];
@@ -415,14 +413,17 @@ function renderReview(findings) {
     block.className = "card";
     block.setAttribute("data-kind", "person");
     block.style.setProperty("--i", i);
-    addText(block, item.subject, "subject");
+    var head = el("div", "card-head");
+    head.appendChild(el("p", "subject", item.subject));
+    var label = el("p", "decision", "In review");
+    label.setAttribute("data-state", "open");
+    head.appendChild(label);
+    block.appendChild(head);
     addText(block, "Reason: " + item.code, "reason");
-    addText(block, item.note, "message");
+    addText(block, item.note, "message evidence");
     if (item.confidence !== null) {
       scoreMeter(block, item.confidence);
     }
-    var label = addText(block, "In review", "decision");
-    label.setAttribute("data-state", "open");
     var actions = el("div", "actions");
     var accept = document.createElement("button");
     accept.type = "button";
@@ -621,28 +622,37 @@ function seatPanel(dash, names) {
       ". " + names.foreignNational.length + " Foreign National seat counted separately."
   );
   var seatIndex = 0;
-  function addSeat(seatClass, caption) {
-    var slot = el("span", "seat-slot");
+  function addSlot(kind, title, tag) {
+    var slot = el("div", "seat-slot slot-" + kind);
     slot.style.setProperty("--i", seatIndex);
     seatIndex += 1;
-    slot.appendChild(el("span", seatClass));
-    slot.appendChild(el("span", "seat-caption", caption));
+    var head = el("span", "slot-head");
+    head.appendChild(icon("seat", "slot-icon"));
+    head.appendChild(el("span", "slot-title", title));
+    slot.appendChild(head);
+    slot.appendChild(el("span", "slot-tag", tag));
     bar.appendChild(slot);
   }
   var s;
   for (s = 0; s < dash.approvedIntake; s += 1) {
-    addSeat(s < counted ? "seat" : "seat seat-empty", "Seat " + (s + 1));
+    if (s < counted) {
+      addSlot("filled", "Seat " + (s + 1), "Claimed");
+    } else {
+      addSlot("empty", "Seat " + (s + 1), "Open");
+    }
   }
   if (over > 0) {
-    bar.appendChild(el("span", "seat-limit"));
+    var limit = el("span", "seat-limit");
+    limit.setAttribute("data-label", "Intake limit (" + dash.approvedIntake + ")");
+    bar.appendChild(limit);
     for (s = 0; s < over; s += 1) {
-      addSeat("seat seat-over", "Over intake");
+      addSlot("over", "Extra claim", "Over intake");
     }
   }
   if (names.foreignNational.length > 0) {
     bar.appendChild(el("span", "seat-divider"));
     for (s = 0; s < names.foreignNational.length; s += 1) {
-      addSeat("seat seat-fn", "Foreign National");
+      addSlot("fn", "Foreign National", "Not counted");
     }
   }
   section.appendChild(bar);
@@ -671,9 +681,11 @@ function reasonPanel(findings) {
     var chip = el("button", "chip");
     chip.type = "button";
     chip.setAttribute("aria-expanded", "false");
+    chip.appendChild(el("span", "chip-dot"));
     chip.appendChild(el("span", "chip-code", group.code));
     chip.appendChild(el("span", "chip-kind", kind.label));
     chip.appendChild(el("span", "chip-count", String(group.subjects.length)));
+    chip.appendChild(icon("chevron", "chip-chevron"));
 
     var detail = el("div", "chip-detail");
     detail.hidden = true;
@@ -706,7 +718,7 @@ function renderDashboard(findings) {
   var names = enrolmentNames();
   var flagged = dash.status === "Flagged";
 
-  contextBar(screen, dash, false);
+  contextBar(dash);
 
   var stats = el("div", "stats stat-row");
   stats.appendChild(statCard({
@@ -749,11 +761,6 @@ function renderDashboard(findings) {
   grid.appendChild(reasonPanel(findings));
   screen.appendChild(grid);
 
-  addText(
-    screen,
-    "Built: report, review queue, dashboard · Simulated: APAAR lookup and all records · Proposed: consent, audit log, role-based access",
-    "scope-line"
-  );
 }
 
 function renderPage() {
