@@ -364,26 +364,22 @@ function renderReport(findings) {
   summary.appendChild(statCard({
     index: 0, tone: "navy", icon: "file",
     label: "Rows checked",
-    value: String(students.length),
-    caption: "From the institution's file"
+    value: String(students.length)
   }));
   summary.appendChild(statCard({
     index: 1, tone: "amber", icon: "alert",
     label: "Row-level problems",
-    value: String(rowItems.length),
-    caption: "Each with a reason code and a fix"
+    value: String(rowItems.length)
   }));
   summary.appendChild(statCard({
     index: 2, tone: courseItems.length ? "red" : "green", icon: "flag",
     label: "Course-level flags",
-    value: String(courseItems.length),
-    caption: courseItems.length ? "Course over its approved intake" : "No course over its approved intake"
+    value: String(courseItems.length)
   }));
   summary.appendChild(statCard({
     index: 3, tone: "blue", icon: "person",
     label: "Sent to a person",
-    value: String(findings.review.length),
-    caption: "Review queue · nothing is auto-rejected"
+    value: String(findings.review.length)
   }));
   screen.appendChild(summary);
 
@@ -572,12 +568,8 @@ function statCard(opts) {
   top.appendChild(el("span", "stat-label", opts.label));
   card.appendChild(top);
   card.appendChild(el("span", opts.flagged ? "stat-value flagged" : "stat-value", opts.value));
-  card.appendChild(el("span", "stat-caption", opts.caption));
-  if (opts.delta) {
-    var delta = el("span", "stat-delta");
-    delta.appendChild(icon("alert"));
-    delta.appendChild(el("span", null, opts.delta));
-    card.appendChild(delta);
+  if (opts.caption) {
+    card.appendChild(el("span", "stat-caption", opts.caption));
   }
   if (opts.names) {
     var hint = el("span", "stat-hint");
@@ -604,12 +596,7 @@ function statCard(opts) {
 function seatPanel(dash, names) {
   var counted = names.counted.length;
   var over = counted - dash.approvedIntake;
-  var section = panel(
-    "seat-panel",
-    "Seat check",
-    "Regular claims against the approved intake for " + dash.course,
-    "seat"
-  );
+  var section = panel("seat-panel", "Seat check", dash.course, "seat");
 
   var hero = el("div", "seat-hero");
   var figure = el("p", "seat-figure");
@@ -619,17 +606,10 @@ function seatPanel(dash, names) {
   figure.appendChild(el("span", "seat-num", String(dash.approvedIntake)));
   figure.appendChild(el("span", "seat-of", dash.approvedIntake === 1 ? "approved seat" : "approved seats"));
   hero.appendChild(figure);
-  if (over > 0) {
-    var label = el("p", "seat-label is-over");
-    label.appendChild(icon("alert"));
-    label.appendChild(el("span", null, "Over by " + over));
-    hero.appendChild(label);
-  } else {
-    var ok = el("p", "seat-label is-ok");
-    ok.appendChild(icon("check"));
-    ok.appendChild(el("span", null, "Within intake"));
-    hero.appendChild(ok);
-  }
+  var label = el("p", over > 0 ? "seat-label is-over" : "seat-label is-ok");
+  label.appendChild(icon(over > 0 ? "alert" : "check"));
+  label.appendChild(el("span", null, over > 0 ? "Over by " + over : "Within intake"));
+  hero.appendChild(label);
   section.appendChild(hero);
 
   var bar = el("div", "seat-bar");
@@ -640,58 +620,32 @@ function seatPanel(dash, names) {
       (over > 0 ? ", over by " + over : "") +
       ". " + names.foreignNational.length + " Foreign National seat counted separately."
   );
-  var s;
   var seatIndex = 0;
-  for (s = 0; s < dash.approvedIntake; s += 1) {
-    var seat = el("span", "seat-slot");
-    seat.style.setProperty("--i", seatIndex);
+  function addSeat(seatClass, caption) {
+    var slot = el("span", "seat-slot");
+    slot.style.setProperty("--i", seatIndex);
     seatIndex += 1;
-    seat.appendChild(el("span", s < counted ? "seat" : "seat seat-empty"));
-    seat.appendChild(el("span", "seat-caption", "Seat " + (s + 1)));
-    bar.appendChild(seat);
+    slot.appendChild(el("span", seatClass));
+    slot.appendChild(el("span", "seat-caption", caption));
+    bar.appendChild(slot);
+  }
+  var s;
+  for (s = 0; s < dash.approvedIntake; s += 1) {
+    addSeat(s < counted ? "seat" : "seat seat-empty", "Seat " + (s + 1));
   }
   if (over > 0) {
     bar.appendChild(el("span", "seat-limit"));
-    var o;
-    for (o = 0; o < over; o += 1) {
-      var extra = el("span", "seat-slot");
-      extra.style.setProperty("--i", seatIndex);
-      seatIndex += 1;
-      extra.appendChild(el("span", "seat seat-over"));
-      extra.appendChild(el("span", "seat-caption", "Over intake"));
-      bar.appendChild(extra);
+    for (s = 0; s < over; s += 1) {
+      addSeat("seat seat-over", "Over intake");
     }
   }
   if (names.foreignNational.length > 0) {
     bar.appendChild(el("span", "seat-divider"));
-    var f;
-    for (f = 0; f < names.foreignNational.length; f += 1) {
-      var fn = el("span", "seat-slot");
-      fn.style.setProperty("--i", seatIndex);
-      seatIndex += 1;
-      fn.appendChild(el("span", "seat seat-fn"));
-      fn.appendChild(el("span", "seat-caption", "Foreign National"));
-      bar.appendChild(fn);
+    for (s = 0; s < names.foreignNational.length; s += 1) {
+      addSeat("seat seat-fn", "Foreign National");
     }
   }
   section.appendChild(bar);
-
-  var legend = el("ul", "legend");
-  var entries = [["seat", "Approved seat, claimed"]];
-  if (over > 0) {
-    entries.push(["seat-over", "Claim above approved intake"]);
-  }
-  if (names.foreignNational.length > 0) {
-    entries.push(["seat-fn", "Foreign National seat (separate)"]);
-  }
-  var e;
-  for (e = 0; e < entries.length; e += 1) {
-    var li = el("li");
-    li.appendChild(el("span", "swatch " + entries[e][0]));
-    li.appendChild(el("span", null, entries[e][1]));
-    legend.appendChild(li);
-  }
-  section.appendChild(legend);
 
   if (names.foreignNational.length > 0) {
     addText(
@@ -701,109 +655,11 @@ function seatPanel(dash, names) {
       "seat-note"
     );
   }
-  if (over > 0) {
-    addText(
-      section,
-      "The flag sits on the course, not on any one student.",
-      "panel-foot"
-    );
-  }
-  return section;
-}
-
-function rowsPanel(names) {
-  var parts = [
-    { key: "counted", label: "Counted", detail: "valid 12-digit ID, first row", list: names.counted },
-    { key: "held", label: "Held", detail: "ID not 12 digits, held until fixed", list: names.held },
-    { key: "duplicate", label: "Duplicate row", detail: "same ID twice, not counted again", list: names.duplicate },
-    { key: "fn", label: "Foreign National", detail: "separate seat, not regular intake", list: names.foreignNational },
-    { key: "other", label: "Other category", detail: "not counted as regular", list: names.other }
-  ];
-  var section = panel(
-    "rows-panel",
-    "Every row in the file",
-    plural(names.total, "row", "rows") + " uploaded · how each one was treated",
-    "layers"
-  );
-  var bar = el("div", "segbar");
-  bar.setAttribute("role", "img");
-  var aria = [];
-  var legend = el("ul", "seg-legend");
-  var i;
-  for (i = 0; i < parts.length; i += 1) {
-    var part = parts[i];
-    var count = part.list.length;
-    if (count === 0) {
-      continue;
-    }
-    aria.push(part.label + " " + count);
-    var seg = el("span", "seg seg-" + part.key);
-    seg.style.flexGrow = String(count);
-    seg.style.setProperty("--i", i);
-    seg.setAttribute("data-tip", part.label + ": " + part.list.join(", "));
-    seg.appendChild(el("span", "seg-num", String(count)));
-    bar.appendChild(seg);
-
-    var li = el("li", "seg-item");
-    li.appendChild(el("span", "swatch seg-" + part.key));
-    var text = el("span", "seg-text");
-    var head = el("span", "seg-head");
-    head.appendChild(el("strong", null, part.label));
-    head.appendChild(el("span", "seg-count", String(count)));
-    text.appendChild(head);
-    text.appendChild(el("span", "seg-detail", part.detail));
-    text.appendChild(el("span", "seg-names", part.list.join(", ")));
-    li.appendChild(text);
-    legend.appendChild(li);
-  }
-  bar.setAttribute("aria-label", "Rows in the file: " + aria.join(", "));
-  section.appendChild(bar);
-  section.appendChild(legend);
-  addText(section, "Only counted rows are compared with the approved intake.", "panel-foot");
-  return section;
-}
-
-function reviewPanel(findings) {
-  var section = panel(
-    "review-panel",
-    "Human review queue",
-    "A person decides every case. Nothing is auto-rejected.",
-    "person"
-  );
-  var list = el("ul", "queue");
-  var i;
-  for (i = 0; i < findings.review.length; i += 1) {
-    var item = findings.review[i];
-    var li = el("li", "queue-item");
-    var head = el("div", "queue-head");
-    head.appendChild(el("span", "queue-name", item.subject));
-    head.appendChild(el("span", "code-tag", item.code));
-    li.appendChild(head);
-    li.appendChild(el("p", "queue-note", item.note));
-    var foot = el("div", "queue-foot");
-    if (item.confidence !== null) {
-      scoreMeter(foot, item.confidence);
-    }
-    foot.appendChild(el("span", "decision", "In review"));
-    li.appendChild(foot);
-    list.appendChild(li);
-  }
-  section.appendChild(list);
-  var link = el("a", "panel-link");
-  link.href = "review.html";
-  link.appendChild(el("span", null, "Open review queue"));
-  link.appendChild(icon("arrow"));
-  section.appendChild(link);
   return section;
 }
 
 function reasonPanel(findings) {
-  var section = panel(
-    "reason-panel",
-    "Reason codes",
-    "Select a code to list who it applies to",
-    "tag"
-  );
+  var section = panel("reason-panel", "Reason codes", "Select one to see who it applies to", "tag");
   var chips = el("div", "chips");
   var groups = reasonGroups(findings);
   var c;
@@ -815,19 +671,9 @@ function reasonPanel(findings) {
     var chip = el("button", "chip");
     chip.type = "button";
     chip.setAttribute("aria-expanded", "false");
-    var chipTop = el("span", "chip-top");
-    chipTop.appendChild(el("span", "chip-code", group.code));
-    chipTop.appendChild(el("span", "chip-count", String(group.subjects.length)));
-    chip.appendChild(chipTop);
+    chip.appendChild(el("span", "chip-code", group.code));
     chip.appendChild(el("span", "chip-kind", kind.label));
-    var where = [];
-    if (group.onReport) {
-      where.push("Report");
-    }
-    if (group.inReview) {
-      where.push("Review queue");
-    }
-    chip.appendChild(el("span", "chip-where", where.length ? "Shown on: " + where.join(" + ") : "Not raised"));
+    chip.appendChild(el("span", "chip-count", String(group.subjects.length)));
 
     var detail = el("div", "chip-detail");
     detail.hidden = true;
@@ -840,9 +686,6 @@ function reasonPanel(findings) {
     if (group.message) {
       addText(detail, group.message, "message");
     }
-    if (group.fix) {
-      addText(detail, "Fix: " + group.fix, "fix");
-    }
     chip.addEventListener("click", function (panelEl, button) {
       return function () {
         panelEl.hidden = !panelEl.hidden;
@@ -854,39 +697,6 @@ function reasonPanel(findings) {
     chips.appendChild(block);
   }
   section.appendChild(chips);
-
-  var kinds = el("ul", "kind-legend");
-  var rows = [
-    ["data", "Institution fixes the row", "fix shown on the Report"],
-    ["seat", "Course over approved intake", "flag sits on the course"],
-    ["person", "A person decides", "case goes to the Review queue"]
-  ];
-  var k;
-  for (k = 0; k < rows.length; k += 1) {
-    var li = el("li", "kind-" + rows[k][0]);
-    li.appendChild(el("span", "kind-dot"));
-    li.appendChild(el("strong", null, rows[k][1]));
-    li.appendChild(el("span", null, rows[k][2]));
-    kinds.appendChild(li);
-  }
-  section.appendChild(kinds);
-  return section;
-}
-
-function scopePanel() {
-  var section = el("section", "scope");
-  var cols = [
-    ["is-built", "In this prototype", "Validation report, human review queue and this dashboard"],
-    ["is-sim", "Simulated", "APAAR registry lookup and every student record (synthetic data)"],
-    ["is-proposed", "Proposed, not yet built", "Consent-based verification, audit log, role-based access, live APAAR and DigiLocker"]
-  ];
-  var i;
-  for (i = 0; i < cols.length; i += 1) {
-    var col = el("div", "scope-col " + cols[i][0]);
-    col.appendChild(el("p", "scope-title", cols[i][1]));
-    col.appendChild(el("p", "scope-text", cols[i][2]));
-    section.appendChild(col);
-  }
   return section;
 }
 
@@ -894,31 +704,29 @@ function renderDashboard(findings) {
   var screen = document.getElementById("screen");
   var dash = findings.dashboard;
   var names = enrolmentNames();
-  var over = names.counted.length - dash.approvedIntake;
   var flagged = dash.status === "Flagged";
 
-  contextBar(screen, dash, true);
+  contextBar(screen, dash, false);
 
   var stats = el("div", "stats stat-row");
   stats.appendChild(statCard({
     index: 0, tone: "navy", icon: "seat",
     label: "Approved intake",
     value: String(dash.approvedIntake),
-    caption: "Regular seats approved for this course"
+    caption: "Regular seats"
   }));
   stats.appendChild(statCard({
     index: 1, tone: "blue", icon: "check",
     label: "Counted",
     value: String(names.counted.length),
-    caption: "Regular enrolment · valid ID, one row each",
-    delta: over > 0 ? over + " above approved intake" : null,
+    caption: "Regular enrolment",
     names: names.counted
   }));
   stats.appendChild(statCard({
     index: 2, tone: "amber", icon: "hold",
     label: "Held",
     value: String(names.held.length),
-    caption: "Regular enrolment · held until the ID is fixed",
+    caption: "Until the ID is fixed",
     names: names.held
   }));
   stats.appendChild(statCard({
@@ -926,27 +734,26 @@ function renderDashboard(findings) {
     label: "Institution status",
     value: dash.status,
     flagged: flagged,
-    caption: flagged ? "A course is over its approved intake" : "No course over its approved intake"
+    caption: flagged ? "Course over intake" : "No intake flag"
   }));
   stats.appendChild(statCard({
     index: 4, tone: "blue", icon: "person",
     label: "Still in review",
     value: String(dash.stillInReview),
-    caption: "Waiting for a person to decide"
+    caption: "A person decides"
   }));
   screen.appendChild(stats);
 
-  var gridTop = el("div", "dash-grid");
-  gridTop.appendChild(seatPanel(dash, names));
-  gridTop.appendChild(rowsPanel(names));
-  screen.appendChild(gridTop);
+  var grid = el("div", "dash-grid");
+  grid.appendChild(seatPanel(dash, names));
+  grid.appendChild(reasonPanel(findings));
+  screen.appendChild(grid);
 
-  var gridBottom = el("div", "dash-grid dash-grid-b");
-  gridBottom.appendChild(reasonPanel(findings));
-  gridBottom.appendChild(reviewPanel(findings));
-  screen.appendChild(gridBottom);
-
-  screen.appendChild(scopePanel());
+  addText(
+    screen,
+    "Built: report, review queue, dashboard · Simulated: APAAR lookup and all records · Proposed: consent, audit log, role-based access",
+    "scope-line"
+  );
 }
 
 function renderPage() {
