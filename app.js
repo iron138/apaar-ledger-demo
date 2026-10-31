@@ -319,28 +319,93 @@ function scoreMeter(parent, confidence) {
   return wrap;
 }
 
+function reportCard(item, index) {
+  var block = document.createElement("section");
+  block.className = "card";
+  block.setAttribute("data-kind", (REASON_KIND[item.code] || {}).kind || "data");
+  block.style.setProperty("--i", index);
+  addText(block, item.subject, "subject");
+  addText(block, "Reason: " + item.code, "reason");
+  addText(block, item.message, "message");
+  addText(block, "Fix: " + item.fix, "fix");
+  if (item.held) {
+    addText(block, item.held, "held");
+  }
+  return block;
+}
+
+function groupHeading(screen, title, subtitle, count) {
+  var head = el("div", "group-head");
+  var titleRow = el("h2", "group-title", title);
+  titleRow.appendChild(el("span", "group-count", String(count)));
+  head.appendChild(titleRow);
+  head.appendChild(el("p", "group-sub", subtitle));
+  screen.appendChild(head);
+}
+
 function renderReport(findings) {
   var screen = document.getElementById("screen");
   var dash = findings.dashboard;
   contextBar(screen, dash, false);
-  var grid = el("div", "card-grid");
+
+  // Split the computed findings: the course-level flag versus problems on rows.
+  var rowItems = [];
+  var courseItems = [];
   var i;
   for (i = 0; i < findings.report.length; i += 1) {
-    var item = findings.report[i];
-    var block = document.createElement("section");
-    block.className = "card";
-    block.setAttribute("data-kind", (REASON_KIND[item.code] || {}).kind || "data");
-    block.style.setProperty("--i", i);
-    addText(block, item.subject, "subject");
-    addText(block, "Reason: " + item.code, "reason");
-    addText(block, item.message, "message");
-    addText(block, "Fix: " + item.fix, "fix");
-    if (item.held) {
-      addText(block, item.held, "held");
+    if (findings.report[i].subject === dash.course) {
+      courseItems.push(findings.report[i]);
+    } else {
+      rowItems.push(findings.report[i]);
     }
-    grid.appendChild(block);
   }
-  screen.appendChild(grid);
+
+  var summary = el("div", "stats report-stats");
+  summary.appendChild(statCard({
+    index: 0, tone: "navy", icon: "file",
+    label: "Rows checked",
+    value: String(students.length),
+    caption: "From the institution's file"
+  }));
+  summary.appendChild(statCard({
+    index: 1, tone: "amber", icon: "alert",
+    label: "Row-level problems",
+    value: String(rowItems.length),
+    caption: "Each with a reason code and a fix"
+  }));
+  summary.appendChild(statCard({
+    index: 2, tone: courseItems.length ? "red" : "green", icon: "flag",
+    label: "Course-level flags",
+    value: String(courseItems.length),
+    caption: courseItems.length ? "Course over its approved intake" : "No course over its approved intake"
+  }));
+  summary.appendChild(statCard({
+    index: 3, tone: "blue", icon: "person",
+    label: "Sent to a person",
+    value: String(findings.review.length),
+    caption: "Review queue · nothing is auto-rejected"
+  }));
+  screen.appendChild(summary);
+
+  var index = 0;
+  if (rowItems.length) {
+    groupHeading(screen, "Row-level problems", "Each row gets a reason code, a plain message and a suggested fix.", rowItems.length);
+    var rowGrid = el("div", "card-grid card-grid-3");
+    for (i = 0; i < rowItems.length; i += 1) {
+      rowGrid.appendChild(reportCard(rowItems[i], index));
+      index += 1;
+    }
+    screen.appendChild(rowGrid);
+  }
+  if (courseItems.length) {
+    groupHeading(screen, "Course-level flag", "Counted against the course, not against any one student.", courseItems.length);
+    var courseGrid = el("div", "card-grid card-grid-course");
+    for (i = 0; i < courseItems.length; i += 1) {
+      courseGrid.appendChild(reportCard(courseItems[i], index));
+      index += 1;
+    }
+    screen.appendChild(courseGrid);
+  }
 }
 
 function renderReview(findings) {

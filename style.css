@@ -76,12 +76,11 @@ body {
 }
 
 .topbar::after {
-  background: linear-gradient(90deg, #ff9933 0 33.3%, #ffffff 33.3% 66.6%, #138808 66.6% 100%);
+  background: linear-gradient(90deg, var(--blue-500) 0%, #4fa3f0 55%, #7fd18b 100%);
   bottom: 0;
   content: "";
   height: 3px;
   left: 0;
-  opacity: 0.9;
   position: absolute;
   right: 0;
 }
@@ -449,6 +448,59 @@ h1 {
   content: "";
   height: 8px;
   width: 8px;
+}
+
+/* Report page: summary strip and groups */
+
+.stats.report-stats {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin-bottom: 26px;
+}
+
+.report-stats .stat-value {
+  margin-top: 8px;
+}
+
+.group-head {
+  margin: 0 0 12px;
+}
+
+.group-title {
+  align-items: center;
+  display: flex;
+  font-size: 1.1rem;
+  font-weight: 750;
+  gap: 10px;
+  margin: 0;
+}
+
+.group-count {
+  align-items: center;
+  background: var(--navy-800);
+  border-radius: 999px;
+  color: #fff;
+  display: inline-flex;
+  font-size: 0.78rem;
+  font-weight: 800;
+  height: 22px;
+  justify-content: center;
+  min-width: 22px;
+  padding: 0 7px;
+}
+
+.group-sub {
+  color: var(--ink-3);
+  font-size: 0.88rem;
+  margin: 2px 0 0;
+}
+
+.card-grid-3 {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
+  margin-bottom: 26px;
+}
+
+.card-grid-course {
+  grid-template-columns: minmax(0, 1fr);
 }
 
 /* Illustrative score meter */
@@ -1638,6 +1690,9 @@ button.stat:hover {
 @media (max-width: 1100px) {
   .stats {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .stats.report-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .dash-grid,
   .dash-grid-b {
